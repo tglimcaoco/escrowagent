@@ -4,7 +4,7 @@ import PartyName from '../components/PartyName'
 
 export default function Dashboard({ rows, userId, filter, setFilter, onAct, onAccept }) {
   const all = rows || []
-  const shown = all.filter((t) => filter === 'All' || t.status === filter)
+  const shown = sortForUser(all.filter((t) => filter === 'All' || t.status === filter), userId)
   const matrix = emptyMatrix()
   for (const t of all) matrix[t.status][viewOf(t, userId).role] += 1
   const count = (s) => (s === 'All' ? all.length : all.filter((t) => t.status === s).length)
@@ -42,6 +42,22 @@ export default function Dashboard({ rows, userId, filter, setFilter, onAct, onAc
       )}
     </section>
   )
+}
+
+const STATUS_ORDER = ['Waiting', 'Pending', 'Funded', 'Completed', 'Refunded', 'Cancelled']
+
+// Transactions needing the user's action come first (Waiting, Pending, Funded),
+// then the rest (Waiting, Pending, Funded, Completed, Refunded, Cancelled).
+// Within a group, the most recently updated stays on top.
+function sortForUser(list, userId) {
+  const key = (t) => {
+    const acts = nextStep(t, viewOf(t, userId))?.tone === 'act'
+    return (acts ? 0 : 10) + STATUS_ORDER.indexOf(t.status)
+  }
+  return list
+    .map((t, i) => ({ t, i, k: key(t) }))
+    .sort((a, b) => a.k - b.k || a.i - b.i)
+    .map((x) => x.t)
 }
 
 function Track({ status }) {
@@ -97,10 +113,10 @@ function TxCard({ t, userId, onAct, onAccept }) {
           <span className={'status s-' + t.status}>{STATUS_LABEL[t.status]}</span>
           <span className="role">You: {v.role}</span>
         </div>
-        <div className="tx-desc">{t.description}</div>
         {next && <div className={'tx-next ' + next.tone}>{next.text}</div>}
+        <div className="tx-desc">{t.description}</div>
         <div className="tx-meta">
-          <span>Counterparty <PartyName email={v.counterparty} /></span>
+          <span>{v.role === 'Buyer' ? 'Seller' : 'Buyer'} ID <PartyName email={v.counterparty} /></span>
           <span>Updated {fmtDate(t.updated_at)}</span>
         </div>
       </div>
