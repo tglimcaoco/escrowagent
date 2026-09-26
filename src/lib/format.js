@@ -38,3 +38,8 @@ export const buyerOf = (t) => (t.creator_role === 'Buyer' ? t.creator_email : t.
 export const sellerOf = (t) => (t.creator_role === 'Seller' ? t.creator_email : t.counterparty_email)
 
 export const errMsg = (e) => (e && e.message) || 'Something went wrong. Try again.'
+
+// { Waiting: { Buyer: 0, Seller: 0 }, Pending: {...}, ... }
+export function emptyMatrix() {
+  return Object.fromEntries(STATUSES.map((s) => [s, { Buyer: 0, Seller: 0 }]))
+}
