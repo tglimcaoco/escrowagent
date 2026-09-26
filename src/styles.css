@@ -203,3 +203,9 @@ table.srt tfoot th{font-weight:800}
 .party-pop{width:340px}
 .party-pop table.srt{font-size:.82rem}
 .party-pop table.srt th,.party-pop table.srt td{padding:5px 6px}
+
+/* next-step line on each transaction */
+.tx-next{font-size:.9rem;font-weight:700;margin:2px 0 6px;display:flex;gap:7px;align-items:baseline}
+.tx-next::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:currentColor;transform:translateY(-1px)}
+.tx-next.act{color:var(--vault)}
+.tx-next.info{color:var(--muted)}
