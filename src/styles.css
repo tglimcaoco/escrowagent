@@ -172,3 +172,18 @@ details summary{cursor:pointer;color:#B7AEC7;font-size:.8rem}
 .linkbtn{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:.9rem;margin-top:14px}
 body.admin-mode .linkbtn{color:#B7AEC7}
 .banner{border:1.5px solid var(--danger);color:var(--danger);border-radius:12px;padding:14px 16px;margin-bottom:18px;font-weight:600}
+
+/* status counts on filter chips */
+.chip .count{margin-left:6px;opacity:.65;font-variant-numeric:tabular-nums}
+
+/* counterparty summary card */
+.party{display:inline}
+.party-name{background:none;border:0;padding:0;font:inherit;font-weight:700;color:var(--ink);text-decoration:underline dotted;text-underline-offset:3px;cursor:help;overflow-wrap:anywhere;text-align:left}
+body.admin-mode .party-name{color:inherit;font-weight:500}
+.party-pop{position:fixed;z-index:40;width:270px;max-width:calc(100vw - 24px);background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.18);font-size:.86rem;text-align:left}
+.party-pop h4{margin:0 0 2px;font-size:.9rem;overflow-wrap:anywhere}
+.party-pop ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.party-pop li{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.party-pop li.zero{opacity:.45}
+.party-muted{margin:0;color:var(--muted)}
+.party-err{margin:0;color:var(--danger)}

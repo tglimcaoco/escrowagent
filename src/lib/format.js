@@ -1,5 +1,15 @@
 export const STATUSES = ['Waiting', 'Pending', 'Funded', 'Completed', 'Refunded', 'Cancelled']
 
+// Identifiers stay short in the database; this is what people read on screen.
+export const STATUS_LABEL = {
+  Waiting: 'Waiting to be accepted',
+  Pending: 'Pending funds from buyer',
+  Funded: 'Escrow funded by buyer',
+  Completed: 'Completed',
+  Refunded: 'Refunded',
+  Cancelled: 'Cancelled',
+}
+
 export const peso = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' })
 
 export const fmtDate = (iso) =>

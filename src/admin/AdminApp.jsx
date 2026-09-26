@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useTransactions } from '../lib/useTransactions'
-import { STATUSES, buyerOf, errMsg, fmtDate, peso, sellerOf } from '../lib/format'
+import { STATUSES, STATUS_LABEL, buyerOf, errMsg, fmtDate, peso, sellerOf } from '../lib/format'
 import { useConfirm, useToast } from '../components/feedback'
 import Header from '../components/Header'
+import PartyName from '../components/PartyName'
 
 export default function AdminApp({ session }) {
   const [isAdmin, setIsAdmin] = useState(null)
@@ -61,15 +62,15 @@ function Ledger({ header }) {
 
   async function setStatus(t, to, note) {
     const ok = await confirm({
-      title: `Set ${t.code} to ${to}?`,
-      body: `Currently ${t.status}. Both parties will see the new status immediately.`,
-      yes: `Set to ${to}`,
+      title: `Set ${t.code} to “${STATUS_LABEL[to]}”?`,
+      body: `Currently “${STATUS_LABEL[t.status]}”. Both parties will see the new status immediately.`,
+      yes: 'Update status',
       danger: to === 'Cancelled' || to === 'Refunded',
     })
     if (!ok) return false
     const { error } = await supabase.rpc('admin_set_status', { p_code: t.code, p_status: to, p_note: note || null })
     if (error) { toast(errMsg(error)); return false }
-    toast(`${t.code} set to ${to}.`)
+    toast(`${t.code}: ${STATUS_LABEL[to]}.`)
     reload()
     return true
   }
@@ -136,15 +137,15 @@ function Row({ t, onSet }) {
   return (
     <tr>
       <td><span className="tx-code">{t.code}</span><div className="hist">{fmtDate(t.created_at)}</div></td>
-      <td>{buyerOf(t)}</td>
-      <td>{sellerOf(t)}</td>
+      <td><PartyName email={buyerOf(t)} /></td>
+      <td><PartyName email={sellerOf(t)} /></td>
       <td>{t.description}<History code={t.code} updatedAt={t.updated_at} /></td>
       <td className="num">{peso.format(t.amount)}</td>
-      <td><span className={'status s-' + t.status}>{t.status}</span></td>
+      <td><span className={'status s-' + t.status}>{STATUS_LABEL[t.status]}</span></td>
       <td>
         <div className="adm-row-actions">
           <select aria-label={'New status for ' + t.code} value={to} onChange={(e) => setTo(e.target.value)}>
-            {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+            {STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
           </select>
           <input type="text" placeholder="Note (optional)" aria-label={'Note for ' + t.code} value={note} onChange={(e) => setNote(e.target.value)} />
           <button className="adm-btn" type="button" disabled={busy || to === t.status} onClick={update}>Update</button>

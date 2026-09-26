@@ -1,14 +1,19 @@
-import { STATUSES, fmtDate, peso, viewOf } from '../lib/format'
+import { STATUSES, STATUS_LABEL, fmtDate, peso, viewOf } from '../lib/format'
+import PartyName from '../components/PartyName'
 
 export default function Dashboard({ rows, userId, filter, setFilter, onAct, onAccept }) {
-  const shown = (rows || []).filter((t) => filter === 'All' || t.status === filter)
+  const all = rows || []
+  const shown = all.filter((t) => filter === 'All' || t.status === filter)
+  const count = (s) => (s === 'All' ? all.length : all.filter((t) => t.status === s).length)
   return (
     <section>
       <div className="dash-head">
         <h2>Your transactions</h2>
         <div className="filters" role="group" aria-label="Filter by status">
           {['All', ...STATUSES].map((s) => (
-            <button key={s} type="button" className="chip" aria-pressed={filter === s} onClick={() => setFilter(s)}>{s}</button>
+            <button key={s} type="button" className="chip" aria-pressed={filter === s} onClick={() => setFilter(s)}>
+              {s}{rows && <span className="count">{count(s)}</span>}
+            </button>
           ))}
         </div>
       </div>
@@ -53,12 +58,12 @@ function TxCard({ t, userId, onAct, onAccept }) {
       <div>
         <div className="tx-top">
           <span className="tx-code">{t.code}</span>
-          <span className={'status s-' + t.status}>{t.status}</span>
+          <span className={'status s-' + t.status}>{STATUS_LABEL[t.status]}</span>
           <span className="role">You: {v.role}</span>
         </div>
         <div className="tx-desc">{t.description}</div>
         <div className="tx-meta">
-          <span>Counterparty <b>{v.counterparty}</b></span>
+          <span>Counterparty <PartyName email={v.counterparty} /></span>
           <span>Updated {fmtDate(t.updated_at)}</span>
           {waitingNote && <span>{waitingNote}</span>}
         </div>
