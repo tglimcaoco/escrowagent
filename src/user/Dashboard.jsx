@@ -57,12 +57,38 @@ function Track({ status }) {
   )
 }
 
+// What this transaction means for the signed-in user, by status and role.
+// tone "act" = the user needs to do something; "info" = nothing needed from them.
+function nextStep(t, v) {
+  const buyer = v.role === 'Buyer'
+  switch (t.status) {
+    case 'Waiting':
+      return v.iAmCreator
+        ? { tone: 'info', text: 'Waiting for the other party to accept' }
+        : { tone: 'act', text: 'Sent to you — accept to proceed' }
+    case 'Pending':
+      return buyer
+        ? { tone: 'act', text: 'Waiting for you to send funds to escrow' }
+        : { tone: 'info', text: 'Waiting for Buyer to send funds to escrow' }
+    case 'Funded':
+      return buyer
+        ? { tone: 'act', text: 'Release payment when Seller has delivered' }
+        : { tone: 'act', text: 'Refund payment to Buyer if you are unable to deliver' }
+    case 'Completed':
+      return { tone: 'info', text: 'Transaction successfully completed with payment released to Seller' }
+    case 'Refunded':
+      return { tone: 'info', text: 'Transaction refunded by Seller to Buyer' }
+    case 'Cancelled':
+      return { tone: 'info', text: 'This transaction was cancelled' }
+    default:
+      return null
+  }
+}
+
 function TxCard({ t, userId, onAct, onAccept }) {
   const v = viewOf(t, userId)
   const invited = !v.iAmCreator && t.status === 'Waiting'
-  const waitingNote = t.status === 'Waiting'
-    ? v.iAmCreator ? 'Waiting for the other party to accept' : 'Sent to you — accept to proceed'
-    : null
+  const next = nextStep(t, v)
   return (
     <article className="tx">
       <div>
@@ -72,10 +98,10 @@ function TxCard({ t, userId, onAct, onAccept }) {
           <span className="role">You: {v.role}</span>
         </div>
         <div className="tx-desc">{t.description}</div>
+        {next && <div className={'tx-next ' + next.tone}>{next.text}</div>}
         <div className="tx-meta">
           <span>Counterparty <PartyName email={v.counterparty} /></span>
           <span>Updated {fmtDate(t.updated_at)}</span>
-          {waitingNote && <span>{waitingNote}</span>}
         </div>
       </div>
       <div className="tx-right">
