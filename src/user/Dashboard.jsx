@@ -1,12 +1,22 @@
-import { STATUSES, STATUS_LABEL, fmtDate, peso, viewOf } from '../lib/format'
+import { STATUSES, STATUS_LABEL, emptyMatrix, fmtDate, peso, viewOf } from '../lib/format'
+import StatusRoleTable from '../components/StatusRoleTable'
 import PartyName from '../components/PartyName'
 
 export default function Dashboard({ rows, userId, filter, setFilter, onAct, onAccept }) {
   const all = rows || []
   const shown = all.filter((t) => filter === 'All' || t.status === filter)
+  const matrix = emptyMatrix()
+  for (const t of all) matrix[t.status][viewOf(t, userId).role] += 1
   const count = (s) => (s === 'All' ? all.length : all.filter((t) => t.status === s).length)
   return (
     <section>
+      {rows && rows.length > 0 && (
+        <div className="panel summary">
+          <h2>Your summary</h2>
+          <p className="sub">Your transactions by status and by your role. Tap a status to show those transactions.</p>
+          <StatusRoleTable counts={matrix} onPick={setFilter} />
+        </div>
+      )}
       <div className="dash-head">
         <h2>Your transactions</h2>
         <div className="filters" role="group" aria-label="Filter by status">
