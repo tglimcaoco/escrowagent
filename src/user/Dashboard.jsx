@@ -1,8 +1,10 @@
 import { STATUSES, STATUS_LABEL, emptyMatrix, fmtDate, peso, viewOf } from '../lib/format'
+import { useEffect, useRef, useState } from 'react'
 import StatusRoleTable from '../components/StatusRoleTable'
 import PartyName from '../components/PartyName'
 
 export default function Dashboard({ rows, userId, filter, setFilter, onAct, onAccept }) {
+  const [fundingTx, setFundingTx] = useState(null)
   const all = rows || []
   const shown = sortForUser(all.filter((t) => filter === 'All' || t.status === filter), userId)
   const matrix = emptyMatrix()
@@ -37,10 +39,54 @@ export default function Dashboard({ rows, userId, filter, setFilter, onAct, onAc
         </div>
       ) : (
         <div className="list">
-          {shown.map((t) => <TxCard key={t.code} t={t} userId={userId} onAct={onAct} onAccept={onAccept} />)}
+          {shown.map((t) => <TxCard key={t.code} t={t} userId={userId} onAct={onAct} onAccept={onAccept} onHowToFund={setFundingTx} />)}
         </div>
       )}
+      <FundingInstructions t={fundingTx} onClose={() => setFundingTx(null)} />
     </section>
+  )
+}
+
+// ---- How to send funds -------------------------------------------------
+// Placeholders until the escrow account and QR code are finalised.
+const ESCROW_ACCOUNT = 'XXXX'
+const ESCROW_QR_SRC = null // e.g. '/escrow-qr.png' once the QR image is added to the public folder
+
+function FundingInstructions({ t, onClose }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    const d = ref.current
+    if (!d) return
+    if (t && !d.open) d.showModal()
+    if (!t && d.open) d.close()
+  }, [t])
+
+  return (
+    <dialog ref={ref} aria-labelledby="fund-title" onCancel={(e) => { e.preventDefault(); onClose() }}>
+      {t && (
+        <>
+          <h3 id="fund-title">How to send funds</h3>
+          <p style={{ color: 'var(--ink)' }}>
+            Send funds to BPI account {ESCROW_ACCOUNT} or use this QR code to transfer <b className="num">{peso.format(t.amount)}</b>.
+          </p>
+          <div
+            style={{
+              width: 180, height: 180, margin: '0 auto 18px', borderRadius: 12,
+              border: ESCROW_QR_SRC ? '0' : '2px dashed var(--line)',
+              display: 'grid', placeItems: 'center', color: 'var(--muted)', fontSize: '.85rem',
+            }}
+          >
+            {ESCROW_QR_SRC
+              ? <img src={ESCROW_QR_SRC} alt={`QR code to transfer ${peso.format(t.amount)} to escrow`} style={{ width: '100%', height: '100%' }} />
+              : 'QR code'}
+          </div>
+          <p style={{ fontSize: '.85rem', margin: '0 0 18px' }}>Transaction {t.code}</p>
+          <div className="dlg-actions">
+            <button className="btn" type="button" onClick={onClose} autoFocus>Close</button>
+          </div>
+        </>
+      )}
+    </dialog>
   )
 }
 
@@ -101,7 +147,7 @@ function nextStep(t, v) {
   }
 }
 
-function TxCard({ t, userId, onAct, onAccept }) {
+function TxCard({ t, userId, onAct, onAccept, onHowToFund }) {
   const v = viewOf(t, userId)
   const invited = !v.iAmCreator && t.status === 'Waiting'
   const next = nextStep(t, v)
@@ -124,6 +170,9 @@ function TxCard({ t, userId, onAct, onAccept }) {
         <div className="tx-amt num">{peso.format(t.amount)}</div>
         <div className="tx-actions">
           {invited && <button className="btn small" type="button" onClick={() => onAccept(t, v.role)}>Accept</button>}
+          {t.status === 'Pending' && v.role === 'Buyer' && (
+            <button className="btn small" type="button" onClick={() => onHowToFund(t)}>How to send funds</button>
+          )}
           {(t.status === 'Waiting' || t.status === 'Pending') && (
             <button className="btn danger small" type="button" onClick={() => onAct(t, 'cancel')}>Cancel</button>
           )}
