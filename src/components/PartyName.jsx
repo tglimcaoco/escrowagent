@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { STATUSES, STATUS_LABEL } from '../lib/format'
+import { emptyMatrix } from '../lib/format'
+import StatusRoleTable from './StatusRoleTable'
 
 // Counts are cached briefly so hovering back and forth doesn't re-query.
 const cache = new Map() // email -> { at, counts }
@@ -11,8 +12,8 @@ async function fetchCounts(email) {
   if (hit && Date.now() - hit.at < FRESH_MS) return hit.counts
   const { data, error } = await supabase.rpc('user_status_counts', { p_email: email })
   if (error) throw error
-  const counts = Object.fromEntries(STATUSES.map((s) => [s, 0]))
-  for (const r of data || []) counts[r.status] = Number(r.total)
+  const counts = emptyMatrix()
+  for (const r of data || []) counts[r.status][r.role] += Number(r.total)
   cache.set(email, { at: Date.now(), counts })
   return counts
 }
@@ -67,7 +68,7 @@ export default function PartyName({ email }) {
     }
   }, [open])
 
-  const total = counts ? Object.values(counts).reduce((a, b) => a + b, 0) : 0
+  const total = counts ? Object.values(counts).reduce((a, r) => a + r.Buyer + r.Seller, 0) : 0
 
   return (
     <span className="party">
@@ -103,14 +104,7 @@ export default function PartyName({ email }) {
           ) : (
             <>
               <p className="party-muted">{total} transaction{total === 1 ? '' : 's'} on EscrowAgent</p>
-              <ul>
-                {STATUSES.map((s) => (
-                  <li key={s} className={counts[s] ? '' : 'zero'}>
-                    <span className={'status s-' + s}>{STATUS_LABEL[s]}</span>
-                    <b className="num">{counts[s]}</b>
-                  </li>
-                ))}
-              </ul>
+              <StatusRoleTable counts={counts} />
             </>
           )}
         </div>
