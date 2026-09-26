@@ -228,9 +228,11 @@ grant execute on function public.update_my_transaction(text, text) to authentica
 grant execute on function public.admin_set_status(text, public.txn_status, text) to authenticated;
 grant execute on function public.is_admin() to authenticated;
 
--- ---------- per-user counts by status ----------
-create or replace function public.user_status_counts(p_email text)
-returns table (status public.txn_status, total bigint)
+-- ---------- per-user counts by status and role ----------
+drop function if exists public.user_status_counts(text);
+
+create function public.user_status_counts(p_email text)
+returns table (status public.txn_status, role public.txn_role, total bigint)
 language plpgsql stable security definer set search_path = public as $$
 #variable_conflict use_column
 declare
@@ -252,10 +254,16 @@ begin
   end if;
 
   return query
-    select t.status, count(*)::bigint
+    select t.status,
+           case
+             when t.creator_email = v_email then t.creator_role
+             when t.creator_role = 'Buyer'  then 'Seller'::public.txn_role
+             else 'Buyer'::public.txn_role
+           end,
+           count(*)::bigint
       from public.transactions t
      where t.creator_email = v_email or t.counterparty_email = v_email
-     group by t.status;
+     group by 1, 2;
 end $$;
 
 revoke all on function public.user_status_counts(text) from public, anon;
