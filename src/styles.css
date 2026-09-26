@@ -187,3 +187,19 @@ body.admin-mode .party-name{color:inherit;font-weight:500}
 .party-pop li.zero{opacity:.45}
 .party-muted{margin:0;color:var(--muted)}
 .party-err{margin:0;color:var(--danger)}
+
+/* status x role summary table */
+.summary{margin-bottom:28px}
+.srt-wrap{overflow-x:auto}
+table.srt{min-width:0;width:100%;border-collapse:collapse;font-size:.88rem}
+table.srt th,table.srt td{padding:6px 8px;border-bottom:1px solid var(--line);background:transparent;color:inherit;position:static;vertical-align:middle}
+table.srt thead th{color:var(--muted);font-weight:700;font-size:.8rem;text-align:right}
+table.srt thead th:first-child,table.srt tbody th,table.srt tfoot th{text-align:left}
+table.srt td{text-align:right;font-weight:700}
+table.srt td.zero{opacity:.4;font-weight:500}
+table.srt tfoot th,table.srt tfoot td{border-bottom:0;padding-top:8px}
+table.srt tfoot th{font-weight:800}
+.srt-pick{background:none;border:0;padding:0;cursor:pointer}
+.party-pop{width:340px}
+.party-pop table.srt{font-size:.82rem}
+.party-pop table.srt th,.party-pop table.srt td{padding:5px 6px}
